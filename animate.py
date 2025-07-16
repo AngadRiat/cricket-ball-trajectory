@@ -1,3 +1,4 @@
+# Add these at the top of animate.py
 import argparse
 from utils import load_simulation_data, create_animation
 

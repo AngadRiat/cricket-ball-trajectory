@@ -1,8 +1,8 @@
-# app.py
+# Add these at the top of app.py
 import streamlit as st
+import pandas as pd
 from simulator import simulate_trajectory
 from utils import create_animation
-import pandas as pd
 
 # Configure page
 st.set_page_config(layout="wide", page_title="Cricket Ball Simulator")

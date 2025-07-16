@@ -1,4 +1,4 @@
-# simulator.py (updated to ensure bounce happens at y=0)
+# Add these at the top of simulator.py
 import numpy as np
 import pandas as pd
 from config import *

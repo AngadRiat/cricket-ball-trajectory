@@ -2,11 +2,11 @@
 import os
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from simulator import simulate_trajectory
 from utils import create_animation
 from config import *
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 # Create directories
 os.makedirs("simulations/logs", exist_ok=True)
