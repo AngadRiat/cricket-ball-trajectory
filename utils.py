@@ -1,4 +1,4 @@
-# Add these at the top of utils.py
+# utils.py
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
@@ -19,6 +19,7 @@ def create_animation(df, params=None, output_file=None):
     final_x = df['x (m)'].iloc[-1]
     final_z = df['z (m)'].iloc[-1]
     final_y = df['y (m)'].iloc[-1]
+    final_time = df['time (s)'].iloc[-1]
     
     # Calculate swing as difference between actual and no-swing trajectories
     swing_distance = 0
@@ -49,6 +50,7 @@ def create_animation(df, params=None, output_file=None):
     bounce_x = df['x (m)'].iloc[bounce_idx]
     bounce_z = df['z (m)'].iloc[bounce_idx]
     bounce_y = df['y (m)'].iloc[bounce_idx]
+    bounce_time = df['time (s)'].iloc[bounce_idx]
     
     if bounce_idx is not None:
         max_height = df['y (m)'].iloc[bounce_idx:].max()
@@ -73,7 +75,11 @@ def create_animation(df, params=None, output_file=None):
                     dash='dot'
                 ),
                 name='No-Swing Trajectory',
-                hovertemplate="x: %{x:.2f}m<br>z: %{y:.2f}m<br>y: %{z:.2f}m<extra></extra>"
+                hovertemplate="Time: %{customdata[1]:.2f}s<br>x: %{x:.2f}m<br>z: %{y:.2f}m<br>y: %{z:.2f}m<br>Speed: %{customdata[0]:.1f} km/h<extra></extra>",
+                customdata=np.column_stack((
+                    df_no_swing['v (m/s)'] * 3.6,
+                    df_no_swing['time (s)']
+                ))
             ))
 
     # Add parameter annotation
@@ -91,8 +97,9 @@ def create_animation(df, params=None, output_file=None):
         else:
             outcome_text += "• Missed stumps<br>"
         outcome_text += f"• Swing: {swing_distance:.2f}m<br>"
-        outcome_text += f"• Bounce at: {bounce_x:.2f}m<br>"
-        outcome_text += f"• Max height: {max_height:.2f}m"
+        outcome_text += f"• Bounce at: {bounce_x:.2f}m ({bounce_time:.2f}s)<br>"
+        outcome_text += f"• Max height: {max_height:.2f}m<br>"
+        outcome_text += f"• Final time: {final_time:.2f}s"
 
         fig.add_annotation(
             x=0.05, y=0.95,
@@ -133,6 +140,7 @@ def create_animation(df, params=None, output_file=None):
         line=dict(color='darkblue', width=4),
         name='Trajectory',
         hovertemplate=(
+            "Time: %{marker.color:.2f}s<br>" +
             "x: %{x:.2f}m<br>z: %{y:.2f}m<br>y: %{z:.2f}m<br>" +
             "Speed: %{customdata:.1f} km/h<extra></extra>"
         ),
@@ -151,7 +159,10 @@ def create_animation(df, params=None, output_file=None):
             symbol='diamond'
         ),
         name='Bounce Point',
-        hovertemplate=f"Bounce at x: {bounce_x:.2f}m<br>z: {bounce_z:.2f}m<br>y: {bounce_y:.2f}m<extra></extra>"
+        hovertemplate=(
+            f"Bounce at {bounce_time:.2f}s<br>"
+            f"x: {bounce_x:.2f}m<br>z: {bounce_z:.2f}m<br>y: {bounce_y:.2f}m<extra></extra>"
+        )
     ))
 
     # Final position marker
@@ -166,7 +177,10 @@ def create_animation(df, params=None, output_file=None):
             symbol='x' if hit_stumps else 'circle'
         ),
         name='Final Position',
-        hovertemplate=f"Final position<br>x: {final_x:.2f}m<br>z: {final_z:.2f}m<br>y: {final_y:.2f}m<extra></extra>"
+        hovertemplate=(
+            f"Final at {final_time:.2f}s<br>"
+            f"x: {final_x:.2f}m<br>z: {final_z:.2f}m<br>y: {final_y:.2f}m<extra></extra>"
+        )
     ))
 
     # Pitch surface
@@ -286,10 +300,14 @@ def create_animation(df, params=None, output_file=None):
                 x=df['x (m)'][:i+1],
                 y=df['z (m)'][:i+1],
                 z=df['y (m)'][:i+1],
-                customdata=(df['v (m/s)'][:i+1] * 3.6),
+                customdata=np.column_stack((
+                    df['v (m/s)'][:i+1] * 3.6,
+                    df['time (s)'][:i+1]
+                )),
                 hovertemplate=(
+                    "Time: %{customdata[1]:.2f}s<br>" +
                     "x: %{x:.2f}m<br>z: %{y:.2f}m<br>y: %{z:.2f}m<br>" +
-                    "Speed: %{customdata:.1f} km/h<extra></extra>"
+                    "Speed: %{customdata[0]:.1f} km/h<extra></extra>"
                 )
             ),
             go.Scatter3d(

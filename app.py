@@ -1,5 +1,6 @@
 # Add these at the top of app.py
 import streamlit as st
+import numpy as np
 import pandas as pd
 from simulator import simulate_trajectory
 from utils import create_animation
@@ -36,12 +37,18 @@ if st.button("Simulate Ball Trajectory"):
         st.error("Invalid trajectory - ball exited pitch too early!")
     else:
         # Show metrics
-        final_x = df['x (m)'].iloc[-1]
-        hit_stumps = (abs(final_x - 20.12) <= 0.5) and (df['y (m)'].iloc[-1] <= 0.71)
+        stump_cross = df[np.isclose(df['x (m)'], 20.12, atol=0.1)]
+
+        if not stump_cross.empty:
+            y_at_stumps = stump_cross['y (m)'].iloc[0]
+            z_at_stumps = stump_cross['z (m)'].iloc[0]
+            
+            hit_stumps = (y_at_stumps <= 0.71) and (abs(z_at_stumps) <= 0.15)  # z within stump width
+        else:
+            hit_stumps = False
         
         col1, col2 = st.columns(2)
         with col1:
-            st.metric("Final Position", f"{final_x:.2f}m down pitch")
             st.metric("Result", "🏏 Hit Stumps!" if hit_stumps else "❌ Missed")
         
         with col2:
